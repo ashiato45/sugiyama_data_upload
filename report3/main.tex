@@ -1,0 +1,145 @@
+\documentclass[9pt]{ltjsarticle}
+\DeclareSymbolFont{bbold}{U}{bbold}{m}{n}
+\DeclareSymbolFontAlphabet{\mathbbold}{bbold}
+\newcommand{\bbold}{\mathbbold}
+\usepackage{xcolor}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{enumitem}
+\usepackage{ashiato45}
+%\usepackage{okumacro}
+\def\MARU#1{\textcircled{\scriptsize #1}}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{framed}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{here}
+%\usepackage[twoside]{geometry}
+\usepackage{mytheorems}
+\usepackage{tikz}
+\usepackage{ascmac}
+\usepackage{stmaryrd}
+\usepackage{txfonts}
+\usetikzlibrary{cd}
+\title{先端データ解析論(杉山将先生・本多淳也先生)\\第3回レポート}
+\author{ashiato45}
+\date{2017年5月1日}
+
+\renewcommand{\bf}{\mathbf}
+\newcommand{\nemui}{Y=眠}
+\newcommand{\nemukunai}{Y=非眠}
+\newcommand{\suki}{X=好}
+\newcommand{\kirai}{X=嫌}
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+\newcommand{\argmax}{\mathop{\mathrm{argmax}}}
+
+\begin{document}
+\maketitle
+
+\section*{宿題1}
+\begin{align}
+ T_+(z) &= z^2/2 + (\lambda-u-\theta)z + (u\theta + \theta^2/2),\\
+ T_-(z)&= z^2/2 + (-\lambda-u-\theta)z + (u\theta + \theta^2/2)
+\end{align}
+と定義する。両方とも最高次が正な2次関数であり、$T_+'(z)=z+(\lambda-u-\theta),
+T_-'(z)=z+(-\lambda-u-\theta)$なので、
+\begin{align}
+ \argmin_{z\ge 0} T(z) &= \max\left(\argmin_z T_+(z), 0\right) = \max(\theta+u-\lambda, 0),\\
+ \argmin_{z\le 0}T(z)& = \min\left(\argmin_z T_-(z), 0\right) = \min(\lambda+u+\theta, 0).
+\end{align}
+よって、
+\begin{align}
+ \argmin_z T(z) = \argmin_{z\ge 0} T(z) + \argmax_{z\le 0} T(z) = \max(\theta+u-\lambda, 0) + \min(\lambda+u+\theta, 0).
+\end{align}
+
+\section*{宿題2}
+\begin{align}
+ \Phi = 
+\begin{pmatrix}
+ K(x_1,x_1) & \ldots & K(x_1,x_n)\\
+ \vdots&\ddots & \vdots\\
+ K(x_n,x_1)&\ldots & K(x_n,x_n)
+\end{pmatrix}
+\end{align}
+として、以下の反復
+\begin{align}
+ \theta & \leftarrow (\Phi^\top\Phi + I)\inv (\Phi^\top y + z-u),\\
+ z& \leftarrow \max(0,\theta+u-\lambda) - \max(0,-\theta-u-\lambda),\\
+ u& \leftarrow u+\theta-z
+\end{align}
+を行えばよい。今回は停止条件として「更新の幅が十分小さくなったら」という
+ものを用いた。計算に用いたプログラムは付録に記す。パラメタは、$h=0.3,
+\lambda=0.2$とした。
+
+結果、図1を得た。50個のパラメタのうち、38個は$10^{-8}$以下であり、
+ほぼ0と見做せた。誤差のノルムは$1.14$であった。
+\easypicture{figure_1.png}
+
+
+
+
+\section*{付録}
+\tiny
+\begin{verbatim}
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+
+h = float(sys.argv[1])
+lam = float(sys.argv[2])
+
+datanum = 50
+datasamples = np.linspace(-3, 3, datanum)
+datasamples = datasamples.reshape(len(datasamples), 1)
+y = np.sin(np.pi*datasamples)/(np.pi*datasamples) + 0.1*datasamples
+y += np.random.randn(datanum, 1)*0.2 # normal distribution
+# print(y)
+
+def gk(x, c):
+    return np.exp(-(x-c)**2/(2*(h**2)))
+
+phi = np.fromfunction(lambda i, j: gk(datasamples[i, 0], datasamples[j, 0]), (datanum, datanum), dtype=int)
+
+theta = np.zeros((datanum, 1))
+z = np.zeros((datanum, 1))
+u = np.zeros((datanum, 1))
+
+while True:
+    theta2 = np.linalg.solve(np.dot(phi.transpose(), phi) + np.eye(datanum, dtype=int), np.dot(phi.transpose(), y) + z - u)
+    z2 = np.maximum(0, theta2+u-lam) + np.minimum(0, theta2+u+lam)
+    u2 = u + theta2 - z2
+    dt = theta-theta2
+    dz = z-z2
+    du = u-u2
+    theta = theta2
+    z = z2
+    u = u2
+    if np.all(abs(dt) < 1e-9) and np.all(abs(dz) < 1e-9) and np.all(abs(du) < 1e-9):
+        break
+        
+
+graphnum = 5000
+graphsamples = np.linspace(-3, 3, graphnum)
+graphsamples = graphsamples.reshape(graphnum, 1)
+calckernel = lambda x: np.dot(theta.transpose(), np.fromfunction(lambda i, j:gk(x, datasamples[i, 0]), (datanum, 1), dtype=int))[0, 0]
+km = np.fromfunction(lambda i,j: gk(graphsamples[i, 0], datasamples[j, 0]), (graphnum, datanum), dtype=int)
+graph = np.dot(km, theta)
+
+em = np.fromfunction(lambda i,j: gk(datasamples[i, 0], datasamples[j, 0]), (datanum, datanum), dtype=int)
+eout = np.dot(em, theta)
+er = eout - y
+
+print(theta)
+print(np.sum(abs(theta) < 1e-8))
+print(np.linalg.norm(er))
+
+plt.axis([-2.8, 2.8, -1, 1.5])    
+plt.plot(datasamples, y, 'o')
+plt.plot(graphsamples, graph, '-')
+# plt.plot(datasamples, eout, 'o')
+plt.show()
+\end{verbatim}
+
+\end{document}

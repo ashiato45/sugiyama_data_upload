@@ -1,0 +1,259 @@
+﻿\newcommand{\casedoc}[1]{\left\{\begin{matrix}#1\end{matrix}\right\}}
+\newcommand{\tatev}[1]{\left(\begin{matrix}
+			     #1
+			    \end{matrix}\right)}
+\newcommand{\diff}{\textrm{d}}
+\newcommand{\dx}[1]{\textrm{d}#1} %argumentを空にするとdだけ出る
+\newcommand{\ddx}[1]{\frac{\textrm{d}}{\textrm{d}#1}}
+\newcommand{\mathnote}[1]{\hspace{\stretch{1}}\text{(#1)}} %todo:fix
+%\newcommand{\combination}[2]{\tatev{#1\\ #2}}
+\newcommand{\combination}[2]{{}_{#1}C_{#2}}
+\newcommand{\permutation}[2]{{}_{#1}P_{#2}}
+\newcommand{\quadmatrix}[4]{
+\left(
+\begin{matrix}
+ #1 & #2 \\
+ #3 & #4
+\end{matrix}
+\right)
+}
+\newcommand{\douchi}{\Leftrightarrow} %ごめん
+\newcommand{\Forall}[1]{{}^{\forall}{#1}\mathrm{\colon\;}}
+\newcommand{\Exists}[1]{{}^{\exists}{#1}\mathrm{\colon\;}}
+\newcommand{\realnumber}{\mathbb{R}}
+\newcommand{\naturalnumber}{\mathbb{N}}
+\newcommand{\complexnumber}{\mathbb{C}}
+\newcommand{\naturalpnumber}{\mathbb{N}^{+}}
+\newcommand{\integernumber}{\mathbb{Z}}
+\newcommand{\rationalnumber}{\mathbb{Q}}
+\newcommand{\Seq}[3]{\left\{#1_{#2}\right\}_{#2\in #3}}
+\newcommand{\seq}[2]{\left\{#1_{#2}\right\}}
+%\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+%\newcommand{\R}{\mathbb{R}}
+
+\newcommand{\exR}{\overline \R}
+
+%\newcommand{\C}{\mathbb{C}}
+\newcommand{\desceq}[1]{\overset{\text{\fbox{\tiny #1}}}{=}}
+\newcommand{\descge}[1]{\overset{\text{\fbox{\tiny #1}}}{\ge}}
+\newcommand{\descle}[1]{\overset{\text{\fbox{\tiny #1}}}{\le}}
+\newcommand{\desclt}[1]{\overset{\text{\fbox{\tiny #1}}}{<}}
+\newcommand{\descgt}[1]{\overset{\text{\fbox{\tiny #1}}}{>}}
+\newcommand{\descin}[1]{\overset{\text{\fbox{\tiny #1}}}{\in}}
+\newcommand{\banme}[2]{\stackrel{#1}{\stackrel{\vee}{#2}}}
+%\newcommand{\N}{\mathbb{N}}
+%\newcommand{\Q}{\mathbb{Q}}
+%\newcommand{\inv}[1]{#1^{-1}}
+\newcommand{\Image}{\mathop\mathrm{Im}}
+%\newcommand{\supp}{\mathrm{supp}}
+
+
+
+\newcommand{\ptext}[1]{(\text{#1})}
+\newcommand{\desciff}[1]{\overset{\text{\fbox{\tiny #1}}}{\iff}}
+\newcommand{\descsubset}[1]{\overset{\text{\fbox{\tiny #1}}}{\subset}}
+\newcommand{\descimplies}[1]{\overset{\text{\fbox{\tiny #1}}}{\implies}}
+
+\newcommand{\rank}{\mathrm{rank}}
+
+
+\newcommand{\pow}[0]{\mathop\mathrm{Pow}}
+\newcommand{\twopi}{2\pi}
+%\newcommand{\Res}[1]{\mathop\mathrm{Res}_{#1}}
+\newcommand{\Real}{\mathop\mathrm{Re}}
+%\newcommand{\abs}[1]{\left|#1\right|}
+
+%\newcommand{\liminf}{\mathop\mathrm{liminf}}
+\newcommand{\zeroset}{\{0\}}
+%\newcommand{\set}[1]{\left\{#1\right\}}
+
+\newcommand{\ovc}[0]{^c}
+\newcommand{\ovinv}[0]{^{-1}}
+\newcommand{\seigen}[1]{|_{#1}}
+\renewcommand{\cal}{\mathcal}
+\newcommand{\openleft}[1]{\left]#1\right]}
+\newcommand{\openright}[1]{\left[#1\right[}
+\newcommand{\openboth}[1]{\left] #1 \right[}
+\newcommand{\closeboth}[1]{\left[ #1 \right]}
+\newcommand{\paren}[1]{\left(#1\right)}
+
+%\newcommand{\dom}{\mathop{dom}}
+
+
+\newcommand{\ho}[1]{{#1}^c}
+\newcommand{\ub}[1]{\underbrace{#1}}
+%\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\mataha}{\text{または}}
+
+\newcommand{\why}{$^\text{\tiny[なぜ？]}$}
+\renewcommand{\tilde}{\widetilde}
+\newcommand{\gen}[1]{\left\langle #1 \right\rangle}
+\newcommand{\var}{\textbf V}
+\newcommand{\myabs}[1]{\left|#1\right|}
+\newcommand{\ideal}{\textbf I}
+\newcommand{\LT}{{\rm LT}}
+\newcommand{\LC}{{\rm LC}}
+\newcommand{\LM}{{\rm LM}}
+\newcommand{\GCD}{{\rm GCD}}
+\newcommand{\warn}[1]{\textcolor{red}{#1}}
+\newcommand{\gcdm}[1]{
+\begin{pmatrix}
+#1 & 1 \\
+1 & 0
+\end{pmatrix}}
+\newcommand{\nashi}[1]{\banme{ナシ}{#1}}
+\newcommand{\Zge}{\Z_{\ge 0}}
+\newcommand{\ovparen}[1]{^{(#1)}}
+\newcommand{\multidegree}{\mathrm{multideg}}
+\newcommand{\multideg}{\multidegree}
+\newcommand{\false}{{\tt false}}
+\newcommand{\true}{{\tt true}}
+% \newcommand{\easypicture}[1]{
+% (図\ref{easypicture_#1}){\tt #1}参照．
+% \begin{figure}[H]
+% \caption{\tt #1}
+% \centering
+% \includegraphics[width=.5\textwidth]{images/#1}
+% \label{easypicture_#1}
+% \end{figure}
+% }
+
+\newcommand{\F}{\bbold F}
+\newcommand{\set}[1]{\left\{#1\right\}}
+\newcommand{\C}{\bbold C}
+\newcommand{\inv}{^{-1}}
+\newcommand{\Z}{\bbold Z}
+\newcommand{\R}{\bbold R}
+\newcommand{\Q}{\bbold Q}
+\newcommand{\N}{\bbold N}
+\newcommand{\defeq}{:=}
+\newcommand{\red}{red}
+\newcommand{\LCM}{\mathrm{LCM}}
+\newcommand{\ovd}[2]{\overline{#1}^{#2}}
+\newenvironment{calcenv}{\begin{multicols}{2} \small}{\end{multicols}}
+\newcommand{\insertcalc}[1]{\begin{calcenv}
+\input{#1}
+\end{calcenv}}
+\newcommand{\toG}{\rightarrow_G}
+\newcommand{\Criterion}{\mathrm{Criterion}}
+\newcommand{\proj}{\bbold P}
+\newcommand{\dquot}[1]{``#1"}
+\newcommand{\GL}{\mathrm{GL}}
+\newcommand{\id}{\mathrm{id}}
+\newcommand{\sgn}{\mathrm{sgn}}
+\newcommand{\ord}{\mathrm{ord}}
+\newcommand{\Aut}{\mathrm{Aut}}
+\newcommand{\dom}{\mathrm{dom}}
+\newcommand{\cod}{\mathrm{cod}}
+\newenvironment{chartpoint}
+{\color{red}\begin{framed}}
+{\end{framed}}
+\newcommand{\vmat}[1]{
+\begin{vmatrix}
+#1
+\end{vmatrix}
+}
+\newcommand{\norm}[1]{\|#1\|}
+\newcommand{\herm}[1]{{}^\dag #1}
+\newcommand{\ol}[1]{\overline{#1}}
+\newcommand{\Ann}{\mathrm{Ann}}
+\newcommand{\Hom}{\mathrm{Hom}}
+\newcommand{\Coker}{\mathrm{Coker}}
+\newcommand{\descsimeq}[1]{\overset{\text{\fbox{\tiny #1}}}{\simeq}}
+\newcommand{\pd}{\partial}
+\newcommand{\abs}[1]{\myabs{#1}}
+\newcommand{\ninfty}{-\infty}
+\newenvironment{smallbox}{\begin{boxnote} \MARU{∵}\small}{\normalsize\end{boxnote}}
+\newcommand{\Res}{\mathrm{Res}}
+\newcommand{\pf}{\MARU{∵}}
+\newcommand{\descto}[1]{\overset{\text{\fbox{\tiny #1}}}{\to}}
+\newcommand{\floor}[1]{\lfloor #1 \rfloor}
+\newcommand{\tplus}{\mathop{\text{plus}}}
+
+\newcommand{\ttimes}{\mathop{\text{times}}}
+\newcommand{\tis}{\mathop{\text{is}}}
+\newcommand{\tlt}{\mathop{\text{less than}}}
+\newcommand{\ddefeq}{::=}
+\newcommand{\eval}{\Downarrow}
+\newcommand{\tif}{\mathop{\text{if}}}
+\newcommand{\tthen}{\mathop{\text{then}}}
+\newcommand{\telse}{\mathop{\text{else}}}
+\newcommand{\ttrue}{{\text{true}}}
+\newcommand{\tfalse}{{\text{else}}}
+\newcommand{\tminus}{\mathop{\text{minus}}}
+\newcommand{\infer}[1]{\rightsquigarrow^{#1}}
+\newcommand{\terror}{{\text{error}}}
+\newcommand{\tlet}{{\text{let}}}
+\newcommand{\tin}{\mathop{\text{in}}}
+\newcommand{\tfun}{\mathop{\text{fun}}}
+\newcommand{\trec}{\mathop{\text{rec}}}
+\newcommand{\tmatch}{\mathop{\text{match}}}
+\newcommand{\twith}{\mathop{\text{with}}}
+\newcommand{\tmatches}{\mathop{\text{matches}}}
+\newcommand{\twhen}{\mathop{\text{when}}}
+\newcommand{\tdmatch}{\mathop{\text{doesn't match}}}
+\newcommand{\tint}{\mathop{\text{int}}}
+\newcommand{\tbool}{\mathop{\text{bool}}}
+\newcommand{\tlist}{\mathop{\text{list}}}
+\newcommand{\tfresh}{\text{ be a fresh type variable }}
+\newcommand{\kh}[1]{{' #1}}
+\newcommand{\est}[1]{{}^* #1}
+\newcommand{\D}{\bbold D}
+\newcommand{\op}{^{op}}
+\newcommand{\B}{\bbold B}
+\newcommand{\lief}{L_{\bf f}}
+\newcommand{\squig}{\rightsquigarrow}
+\newcommand{\trans}{\mathrm{Trans}}
+\newcommand{\cone}{\mathrm{Cone}}
+\newcommand{\horrel}[2]{
+\begin{tabular}{c}
+#1 \\
+\hline
+#2
+\end{tabular}
+}
+\newcommand{\obj}{\bf{Ob}}
+\newcommand{\ar}{\bf{Ar}}
+\renewcommand{\hat}{\widehat}
+\newcommand{\Id}{\mathrm{Id}}
+\newcommand{\spec}{\mathrm{Spec}}
+\newcommand{\notdiv}{\not |}
+\newcommand{\A}{\bbold A}
+\newcommand{\Proj}{\mathrm{Proj}}
+\newcommand{\Spec}{\mathrm{Spec}}
+\newcommand{\deq}[1]{=\fbox{#1}\\&\dots}
+\newcommand{\FC}{\mathrm{FC}}
+\newcommand{\FD}{\mathrm{FD}}
+\newcommand{\alg}{{\mathrm{alg}}}
+\newcommand{\puiseux}{\hat{\,}}
+\newcommand{\SC}{\mathrm{SC}}
+\newcommand{\sign}{\mathrm{sign}}
+\newcommand{\hrz}[2]{
+\begin{tabular}{c}
+#1 \\
+\hline
+#2
+\end{tabular}
+}
+\newcommand{\hrzz}[3]{
+\begin{tabular}{c}
+#1 \\
+\hline
+#2\\
+\hline
+#3
+\end{tabular}
+}
+
+\newcommand{\sem}[1]{\llbracket #1 \rrbracket}
+\newcommand{\bottom}{\perp}
+\newcommand{\com}[1]{\quad \text{\fbox{\small #1}}}
+\newcommand{\easypicture}[1]{
+%\ref{easypicture_#1}
+\begin{figure}[H]
+\caption{}
+\centering
+\includegraphics[width=.5\textwidth]{images/#1}
+\label{easypicture_#1}
+\end{figure}
+}

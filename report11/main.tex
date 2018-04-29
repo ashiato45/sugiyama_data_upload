@@ -1,0 +1,276 @@
+\documentclass[9pt]{ltjsarticle}
+\DeclareSymbolFont{bbold}{U}{bbold}{m}{n}
+\DeclareSymbolFontAlphabet{\mathbbold}{bbold}
+\newcommand{\bbold}{\mathbbold}
+\usepackage{xcolor}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{enumitem}
+\usepackage{ashiato45}
+%\usepackage{okumacro}
+\def\MARU#1{\textcircled{\scriptsize #1}}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{framed}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{here}
+%\usepackage[twoside]{geometry}
+\usepackage{mytheorems}
+\usepackage{tikz}
+% usepackage{ascmac}
+% \usepackage{stmaryrd}
+% \usepackage{txfonts}
+% \usetikzlibrary{cd}
+\title{先端データ解析論(杉山将先生・本多淳也先生)\\第11回レポート}
+\author{ashiato45}
+\date{2017年7月4日}
+
+\renewcommand{\bf}{\mathbf}
+\newcommand{\nemui}{Y=眠}
+\newcommand{\nemukunai}{Y=非眠}
+\newcommand{\suki}{X=好}
+\newcommand{\kirai}{X=嫌}
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+\newcommand{\argmax}{\mathop{\mathrm{argmax}}}
+\newcommand{\test}{\mathrm{test}}
+\newcommand{\train}{\mathrm{train}}
+\newcommand{\kitai}{\bbold{E}}
+\newcommand{\tr}{\mathrm{tr}}
+
+\begin{document}
+\maketitle
+
+\section*{宿題1}
+C++とEigenによる実装(表示にはPythonを用いた)は付録1にある。結果、図1と図2を得た。
+  \easypicture{figure_1.pdf}
+  \easypicture{figure_2.pdf}
+
+\section*{宿題2}
+前半を示す。
+\begin{align}
+S\ovparen{w} 
+&=
+\sum_{y=1}^c \sum_{i\colon y_i = y} (x_i - \mu_y)(x_i-\mu_y)^\top\\
+&=
+\sum_y \sum_i \left(x_ix_i^\top - x_i \sum_{j\colon y_j=y}\frac{1}{n_y}x_j^\top - \sum_{k\colon y_k=y}\frac{1}{n_y}x_kx_i^\top + \frac{1}{n_y^2}\sum_j\sum_k x_jx_k^\top \right) \\
+&=
+\sum_y \left(\sum_i x_ix_i^\top -\frac{2}{n_y}\sum_{i,j}x_ix_j^\top + \frac{1}{n_y^2}\sum_{i,j,k}x_jx_k^\top \right)\\
+&=
+\sum_y \left(\sum_i x_ix_i^\top - \frac{1}{n_y}\sum_{i,j}x_ix_j^\top\right).
+\end{align}
+一方、
+\begin{align}
+\frac{1}{2}\sum_{i,j=1}^n Q_{i,j}\ovparen{w}(x_i-x_j)(x_i-x_j)^\top
+&=
+\frac{1}{2}\sum_{y=1}^c\sum_{i\colon y_i=y}\sum_{z=1}^c \sum_{j\colon y_j=z} Q_{i,j}\ovparen{w}(x_i-x_j)(x_i-x_j)^\top\\
+&=
+\frac{1}{2}\sum_{y=1}^c \sum_{i,j}\frac{1}{n_y}(x_i-x_j)(x_i-x_j)^\top\\
+&=
+\frac{1}{2}\sum_{y=1}^c\sum_{i,j}\frac{1}{n_y}(x_ix_i^\top -x_ix_j^\top -x_jx_i^\top +x_jx_j^\top)\\
+&=
+\sum_{y=1}^c \left(\sum_i x_ix_i^\top - \frac{1}{n_y} \sum_{i,j}x_ix_j^\top\right).
+\end{align}
+よって、
+\begin{align}
+S\ovparen{w}  = \frac{1}{2}\sum_{i,j=1}^n Q_{i,j}\ovparen{w}(x_i-x_j)(x_i-x_j)^\top.
+\end{align}
+前半は示された。
+
+後半を示す。
+\begin{align}
+\frac{1}{2}\sum_{i,j=1}^n Q_{i,j}\ovparen{b} (x_i-x_j)(x_i-x_j)^\top
+&=
+\frac{1}{2}\sum_{i,j=1}^n (1/n-Q_{i,j}\ovparen{b}) (x_i-x_j)(x_i-x_j)^\top\\
+&=
+\frac{1}{2n}\sum_{i,j=1}^n (x_i-x_j)(x_i-x_j)^\top - S\ovparen{w}\\
+&=
+\sum_{i=1}^n x_ix_i^\top - S\ovparen{w}\\
+&=
+S\ovparen{b}.
+\end{align}
+示された。
+
+
+\section*{付録1}
+\subsection*{学習プログラム}
+\tiny
+\begin{verbatim}
+#include <iostream>
+#include <Eigen/Dense>
+#include <Eigen/Eigenvalues>
+#include <cmath>
+#include <random>
+#include <string>
+#include <fstream>
+// #define M_PI 3.1416
+
+#define print(var)  \
+  std::cout<<#var"= "<<std::endl<<(var)<<std::endl
+
+using Eigen::MatrixXd;
+using Eigen::MatrixXf;
+using Eigen::GeneralizedEigenSolver;
+
+void save_mat(std::string name, const MatrixXd* mat){
+  std::ofstream file(name);
+  file << *mat << std::endl << std::endl;
+}
+
+float gk(const MatrixXd& x, const MatrixXd& c){
+  float hh = std::pow(2*1, 2); 
+  auto d = (x - c).norm();
+  return std::exp(-d*d/hh);
+}
+
+
+int main()
+{
+  std::mt19937 engine;
+  std::normal_distribution<> dist(0, 1);
+  std::uniform_real_distribution<> unif(0, 1);
+
+  /* make points */
+  MatrixXd matX(2, 100);
+  MatrixXd sumX(2, 1);
+  MatrixXd vecMu(2, 2);
+  // for(int i=0; i < 100; i++){
+  //   matX(0, i) = dist(engine);
+  //   if(i < 50){
+  //     matX(0, i) -= 4;
+  //   }else{
+  //     matX(0, i) += 4;
+  //   }
+  //   matX(1, i) = dist(engine);
+  // }
+  for(int i=0; i < 100; i++){
+    matX(0, i) = dist(engine);
+    if(i < 25){
+      matX(0, i) -= 4;
+    }else if(25 <= i && i < 50){
+      matX(0, i) += 4;
+    }
+    matX(1, i) = dist(engine);
+  }
+
+  /* centralize */
+  for(int i=0; i < 100; i++){
+    sumX += matX.col(i);
+  }
+  for(int i=0; i < 100; i++){
+    matX.col(i) -= sumX/100;
+  }
+
+  vecMu(0, 0) = 0;
+  vecMu(0, 1) = 0;
+  vecMu(1, 0) = 0;
+  vecMu(1, 1) = 0;
+  std::cout << vecMu << std::endl;
+  for(int i=0; i < 100; i++){
+    if(i < 50){
+      vecMu(0, 0) += matX(0, i);
+      vecMu(1, 0) += matX(1, i);
+    }else{
+      vecMu(0, 1) += matX(0, i);
+      vecMu(1, 1) += matX(1, i);
+    }
+    std::cout << i << "," << vecMu << std::endl;
+  }
+  // vecMu /= 50;
+
+  MatrixXd matSw(2, 2);
+  // std::cout << matSw << std::endl;
+  for(int i=0; i < 100; i++){
+    if(i < 50){
+      matSw += (matX.col(i) - vecMu.col(0))*(matX.col(i) - vecMu.col(0)).transpose();
+    }else{
+      matSw += (matX.col(i) - vecMu.col(1))*(matX.col(i) - vecMu.col(1)).transpose();
+    }
+      // std::cout << i << "," << matSw << std::endl;
+  }
+
+  MatrixXd matSb(2, 2);
+  matSb = 50*vecMu.col(0)*vecMu.col(0).transpose() + 50*vecMu.col(1)*vecMu.col(1).transpose();
+
+
+
+
+
+  // MatrixXd matW(100, 100);
+  // for(int i=0; i < 100; i++){
+  //   for(int j=0; j < 100; j++){
+  //     matW(i, j) = gk(matX.col(i), matX.col(j));
+  //   }
+  // }
+
+  // MatrixXd matD(100, 100);
+  // for(int i=0; i < 100; i++){
+  //   matD(i, i) = matW.col(i).sum();
+  // }
+
+  // MatrixXd matL = matD - matW;
+
+  GeneralizedEigenSolver<MatrixXd> ges;
+  ges.compute(matSb, matSw, true);
+  MatrixXd matTlpp(2, 2); //= ges.eigenvectors().alpha();
+  for(int i=0; i < 2; i++){
+    for(int j=0; j < 2; j++){
+      matTlpp(i, j) = ges.eigenvectors()(i, j).real();
+    }
+  }
+  MatrixXd bvec(2, 1);
+  if(ges.eigenvalues()(0).real() > ges.eigenvalues()(1).real()){
+    bvec = matTlpp.col(0);
+  }else{
+    bvec = matTlpp.col(1);
+  }
+
+  // MatrixXd matRed = matTlpp*matX;
+
+  // // out
+  // std::ofstream file("matTlpp");
+  // file << matTlpp << std::endl;
+  // std::ofstream filew("matW");
+  // filew << matW << std::endl;
+  // std::ofstream filed("matD");
+  // filed << matD << std::endl;
+  // std::ofstream filep("points");
+  // filep << matX << std::endl;
+  // std::ofstream fileeig("eig");
+  // fileeig << ges.eigenvalues() << std::endl << ges.eigenvectors() << std::endl;
+  // std::ofstream filered("matRed");
+  // filered << matRed << std::endl;
+  // std::ofstream filewvec("matX");
+  // filewvec << matX << std::endl;
+  // std::ofstream filebvec("bestVec");
+  // filebvec << bvec << std::endl;
+  save_mat(std::string("matSb"), &matSb);
+  save_mat(std::string("matSw"), &matSw);
+  save_mat(std::string("vecMu"), &vecMu);
+  save_mat(std::string("matTlpp"), &matTlpp);
+  save_mat(std::string("matX"), &matX);
+  save_mat(std::string("bVec"), &bvec);
+}
+\end{verbatim}
+\normalsize
+\subsection*{表示プログラム}
+\tiny
+\begin{verbatim}
+import numpy as np
+import matplotlib.pyplot as plt
+
+wvec = np.loadtxt("bVec")
+
+matx = np.loadtxt("matX")
+
+plt.axis([-5, 5, -5, 5])
+lsp = np.linspace(-20, 20, 100)
+plt.plot(matx[0, :50], matx[1, :50], 'rx')    
+plt.plot(matx[0, 50:], matx[1, 50:], 'bx')    
+plt.plot(lsp, lsp*(wvec[1]/wvec[0]), 'k-')  
+plt.show()
+\end{verbatim}
+
+\normalsize
+
+
+\end{document}

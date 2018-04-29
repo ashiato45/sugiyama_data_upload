@@ -1,0 +1,158 @@
+\documentclass[9pt]{ltjsarticle}
+\DeclareSymbolFont{bbold}{U}{bbold}{m}{n}
+\DeclareSymbolFontAlphabet{\mathbbold}{bbold}
+\newcommand{\bbold}{\mathbbold}
+\usepackage{xcolor}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{enumitem}
+\usepackage{ashiato45}
+%\usepackage{okumacro}
+\def\MARU#1{\textcircled{\scriptsize #1}}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{framed}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{here}
+%\usepackage[twoside]{geometry}
+\usepackage{mytheorems}
+\usepackage{tikz}
+% usepackage{ascmac}
+% \usepackage{stmaryrd}
+% \usepackage{txfonts}
+% \usetikzlibrary{cd}
+\title{先端データ解析論(杉山将先生・本多淳也先生)\\第7回レポート}
+\author{ashiato45}
+\date{2017年5月29日}
+
+\renewcommand{\bf}{\mathbf}
+\newcommand{\nemui}{Y=眠}
+\newcommand{\nemukunai}{Y=非眠}
+\newcommand{\suki}{X=好}
+\newcommand{\kirai}{X=嫌}
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+\newcommand{\argmax}{\mathop{\mathrm{argmax}}}
+
+\begin{document}
+\maketitle
+
+\section*{宿題1}
+Python実装は付録にある。結果、図1を得た。
+
+\easypicture{figure_1.pdf}
+
+\section*{宿題2}
+\begin{align}
+ B_\tau(y\ovparen{\tau}) &=
+ \sum_{y\ovparen{\tau+1},\dots,y\ovparen{m_i}=1}^c \exp\left(\sum_{k=\tau+1}^{m_i} \zeta^\top \varphi(x_i\ovparen{k},y\ovparen{k},y\ovparen{k-1})\right)\\
+ & =
+ \sum_{y\ovparen{\tau+1},\dots,y\ovparen{m_i}=1}^c \exp\left(\sum_{k=\tau+2}^{m_i} \zeta^\top \varphi(x_i\ovparen{k},y\ovparen{k},y\ovparen{k-1})\right)\exp(\zeta^\top \varphi(x_i\ovparen{\tau+1},y\ovparen{\tau+1},y\ovparen{\tau}))\\
+ & =
+ \sum_{y\ovparen{\tau+1}=1}^c \exp(\zeta^\top \varphi(x_i\ovparen{\tau+1},y\ovparen{\tau+1},y\ovparen{\tau})) \sum_{y\ovparen{\tau+2},\dots,y\ovparen{m_i}=1}^c \exp\left(\sum_{k=\tau+2}^{m_i} \zeta^\top \varphi(x_i\ovparen{k},y\ovparen{k},y\ovparen{k-1})\right)\\
+ & =
+ \sum_{y\ovparen{\tau+1}=1}^c B_{\tau+1}(y\ovparen{\tau+1})\exp(\zeta^\top \varphi(x_i\ovparen{\tau+1},y\ovparen{\tau+1},y\ovparen{\tau})).
+\end{align}
+
+\section*{宿題3}
+\begin{align}
+ P_\tau(y\ovparen{\tau})
+ &=
+ \max_{y\ovparen{1},\dots,y\ovparen{\tau-1}=1,\dots,c}\left(\sum_{k=1}^{\tau-1}\zeta^\top \varphi(x\ovparen{k},y\ovparen{k},y\ovparen{k-1}) + \zeta^\top \varphi(x\ovparen{\tau},y\ovparen{\tau},y\ovparen{\tau-1})\right)\\
+ & =
+\max_{y\ovparen{\tau-1}=1,\dots,c}\left( \max_{y\ovparen{1},\dots,y\ovparen{\tau-2}=1,\dots,c} \left(\sum_{k=1}^{\tau-1}\zeta^\top \varphi(x\ovparen{k},y\ovparen{k},y\ovparen{k-1})\right) + \zeta^\top \varphi(x\ovparen{\tau},y\ovparen{\tau},y\ovparen{\tau-1})\right)\\
+ & =
+\max_{y\ovparen{\tau-1}=1,\dots,c}\left( P_{\tau-1}(y\ovparen{\tau-1}) + \zeta^\top \varphi(x\ovparen{\tau},y\ovparen{\tau},y\ovparen{\tau-1})\right).
+\end{align}
+
+\section*{付録}
+\tiny
+\begin{verbatim}
+import sys
+import numpy as np
+import numpy.matlib
+import matplotlib.pyplot as plt
+import scipy.io
+import gc
+
+np.random.seed(42)
+
+n = 90
+c = 3
+h = 1
+lam = 0.3
+
+# Prepare data
+y = np.ones((n//c, 1))*np.array([1,2,3])
+y = y.transpose().reshape(y.size, 1)
+# y = [1,..,1,2,..,2,3,..,3]
+# print(y)
+
+x = np.matlib.repmat(np.linspace(-3, 3, c), n//c, 1)
+x = x.transpose().reshape(y.size, 1)
+# x = [-3,..,-3,0,..,0,3,..,3]
+x += np.random.randn(n, 1)
+# np.linspace(-3, 3, c) = [-3, 0, 3]
+print(x)
+
+# Make pi
+pi = np.zeros((n, c))
+for i in range(c):
+    pi[i*(n//c):(i+1)*(n//c), i] = np.ones(n//c)
+# print(pi)
+
+# Make phi
+phi = np.fromfunction(lambda i, j: np.exp(-(x[i, 0] - x[j, 0])**2/(2*h*h)), (n, n), dtype=int)
+# print(phi.shape)
+# print(phi)
+
+# Calc theta
+A = np.dot(phi.transpose(), phi) + lam*np.eye(n)
+B = np.dot(phi.transpose(), pi)
+theta = np.linalg.solve(A, B)
+print(theta.shape)
+
+def gk(x_):
+    res = np.zeros((n, 1), dtype=float)
+    for i in range(n):
+        res[i, 0] = np.exp(-(x_ - x[i, 0])**2/(2*h*h))
+        # print(x_, x[i, 0], -(x_ - x[i, 0])**2/(2*h*h), res[i,0])
+    return res
+    # return np.fromfunction(lambda i: np.exp(-(x_ - x[i])**2/(2*h*h)), (n,), dtype=int)
+
+def p(yy, xx):
+    return np.maximum(0, np.dot(theta[:,yy].transpose(), gk(xx)))/np.sum(np.maximum(0, np.dot(theta.transpose(), gk(xx))))
+
+# Make prediction
+ptnum = 10000
+pts = np.linspace(-5, 5, ptnum)
+vals = np.zeros((ptnum, c), dtype=float)
+test = np.zeros((ptnum,), dtype=float)
+for i in range(ptnum):
+    for j in range(c):
+        vals[i, j] = p(j, pts[i])
+        # print(theta[:,j].reshape((1, n)).shape, gk(pts[i]).shape)
+        # print(pts[i], gk(pts[i])[:10])
+        # vals[i,j ] = np.dot(theta[:,j].reshape((1, n)), gk(pts[i]))[0,0]
+    test[i] = np.sum(np.maximum(0, np.dot(theta.transpose(), gk(pts[i]))))
+
+a = np.fromfunction(lambda z: np.exp(((pts[z]-0)**2)/(2*h*h)*(-1)), (ptnum,), dtype=int)
+
+print(x)
+print(theta)
+print(vals[0:10, :])
+#print(a)
+plt.axis([-5, 5, -0.1, 1.5]) 
+plt.plot(x[0:n//c], np.ones((n//c, 1)), 'o')   
+plt.plot(x[n//c:2*n//c], np.ones((n//c, 1)), 'o')   
+plt.plot(x[2*n//c:], np.ones((n//c, 1)), 'o')   
+plt.plot(pts, vals[:, 0], '-')
+plt.plot(pts, vals[:, 1], '-')
+plt.plot(pts, vals[:, 2], '-')
+# plt.plot(pts, vals[:, 0] + vals[:, 1] + vals[:, 2], '-')
+# plt.plot(pts, test, '-')
+# plt.plot(x, gk(2), '-') # It seems gk is working well.
+# plt.plot(pts, a, '-')
+plt.show()
+\end{verbatim}
+
+\end{document}

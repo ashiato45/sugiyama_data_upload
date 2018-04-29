@@ -1,0 +1,273 @@
+\documentclass[9pt]{ltjsarticle}
+\DeclareSymbolFont{bbold}{U}{bbold}{m}{n}
+\DeclareSymbolFontAlphabet{\mathbbold}{bbold}
+\newcommand{\bbold}{\mathbbold}
+\usepackage{xcolor}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{enumitem}
+\usepackage{ashiato45}
+%\usepackage{okumacro}
+\def\MARU#1{\textcircled{\scriptsize #1}}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{framed}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{here}
+%\usepackage[twoside]{geometry}
+\usepackage{mytheorems}
+\usepackage{tikz}
+% usepackage{ascmac}
+% \usepackage{stmaryrd}
+% \usepackage{txfonts}
+% \usetikzlibrary{cd}
+\title{先端データ解析論(杉山将先生・本多淳也先生)\\第12回レポート}
+\author{ashiato45}
+\date{2017年7月17日}
+
+\renewcommand{\bf}{\mathbf}
+\newcommand{\nemui}{Y=眠}
+\newcommand{\nemukunai}{Y=非眠}
+\newcommand{\suki}{X=好}
+\newcommand{\kirai}{X=嫌}
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+\newcommand{\argmax}{\mathop{\mathrm{argmax}}}
+\newcommand{\test}{\mathrm{test}}
+\newcommand{\train}{\mathrm{train}}
+\newcommand{\kitai}{\bbold{E}}
+\newcommand{\tr}{\mathrm{tr}}
+
+\begin{document}
+\maketitle
+
+\section*{宿題1}
+まず、$L$が半正定値であることを示す。
+$\alpha \in \R^n$とする。
+\begin{align}
+\alpha^\top L \alpha
+&=
+\alpha^\top (D-W)\alpha\\
+&=
+\sum_i \alpha_i^2 \sum_j W_{ij} - \sum_i\sum_j \alpha_i W_{ij}\alpha_j\\
+&=
+\sum_i\sum_{j\neq i} \alpha_i^2 W_{ij}
+-2 \sum_{i<j}\alpha_i\alpha_j W_{ij}\alpha_i\alpha_j\\
+&=
+\sum_i \sum_{j>i}\alpha_i^2 W_{ij} + \sum_i\sum_{j<i}\alpha_i^2W_{ij}
+-2\sum_{i<j}\alpha_i\alpha_jW_{ij}\\
+&=
+\sum_{i<j}\alpha_i^2W_{ij} + \sum_{i<j}\alpha_j^2 W_{ij} - 2\sum_{i<j}\alpha_i\alpha_jW_{ij}\\
+&=
+\sum_{i<j}W_{ij}(\alpha_i-\alpha_j)^2\\
+&\ge 0.
+\end{align}
+よって、$L$は半正定値である。
+
+次に、$\sqrt{D}$が可逆であることを示す。このためには、$D$が可逆であることを言えばよい。
+$D$が非可逆であると仮定する。
+$D$は対角行列なので、対角成分に$0$があることになる。
+$D$の定義より、$W$のある列の総和が$0$になることになる。
+$W$は類似度行列なので非負行列であり、$W$のある列が$0$ということになる。
+これは$W$が可逆であることに反する。よって、$D$は可逆であり、$\sqrt{D}$も可逆である。
+
+$L$は半正定値なので、$D^{-1/2}LD^{-1/2}$も半正定値行列である。よって、
+$(D^{-1/2}LD^{-1/2})\psi = \lambda\psi$をみたす$\lambda$は非負になる。
+よって、$L\psi = \lambda D\psi$をみたす$\lambda$も非負であり、
+この固有値問題の固有値は0以上である。
+
+$(L\vec 1)_i = D_{ii} - \sum_j W_{ij} = 0$なので、
+$\vec 1$は固有値問題$L\psi = \gamma D\psi$の固有ベクトルであり、
+対応する固有値は$\lambda=0$である。
+
+先に固有値は0以上であることを示し、実際固有値0となる固有ベクトルが存在するので、
+固有値問題の最小固有値は0であり、対応する固有ベクトルは$\vec 1$である。
+
+% \section*{宿題2}
+% C++とEigenによる実装(表示にはPythonを用いた)は付録1にある。結果、図1と図2を得た。
+%   \easypicture{figure_1.pdf}
+%   \easypicture{figure_2.pdf}
+
+
+% \section*{付録1}
+% \subsection*{学習プログラム}
+% \tiny
+% \begin{verbatim}
+% #include <iostream>
+% #include <Eigen/Dense>
+% #include <Eigen/Eigenvalues>
+% #include <cmath>
+% #include <random>
+% #include <string>
+% #include <fstream>
+% // #define M_PI 3.1416
+
+% #define print(var)  \
+%   std::cout<<#var"= "<<std::endl<<(var)<<std::endl
+
+% using Eigen::MatrixXd;
+% using Eigen::MatrixXf;
+% using Eigen::GeneralizedEigenSolver;
+
+% void save_mat(std::string name, const MatrixXd* mat){
+%   std::ofstream file(name);
+%   file << *mat << std::endl << std::endl;
+% }
+
+% float gk(const MatrixXd& x, const MatrixXd& c){
+%   float hh = std::pow(2*1, 2); 
+%   auto d = (x - c).norm();
+%   return std::exp(-d*d/hh);
+% }
+
+
+% int main()
+% {
+%   std::mt19937 engine;
+%   std::normal_distribution<> dist(0, 1);
+%   std::uniform_real_distribution<> unif(0, 1);
+
+%   /* make points */
+%   MatrixXd matX(2, 100);
+%   MatrixXd sumX(2, 1);
+%   MatrixXd vecMu(2, 2);
+%   // for(int i=0; i < 100; i++){
+%   //   matX(0, i) = dist(engine);
+%   //   if(i < 50){
+%   //     matX(0, i) -= 4;
+%   //   }else{
+%   //     matX(0, i) += 4;
+%   //   }
+%   //   matX(1, i) = dist(engine);
+%   // }
+%   for(int i=0; i < 100; i++){
+%     matX(0, i) = dist(engine);
+%     if(i < 25){
+%       matX(0, i) -= 4;
+%     }else if(25 <= i && i < 50){
+%       matX(0, i) += 4;
+%     }
+%     matX(1, i) = dist(engine);
+%   }
+
+%   /* centralize */
+%   for(int i=0; i < 100; i++){
+%     sumX += matX.col(i);
+%   }
+%   for(int i=0; i < 100; i++){
+%     matX.col(i) -= sumX/100;
+%   }
+
+%   vecMu(0, 0) = 0;
+%   vecMu(0, 1) = 0;
+%   vecMu(1, 0) = 0;
+%   vecMu(1, 1) = 0;
+%   std::cout << vecMu << std::endl;
+%   for(int i=0; i < 100; i++){
+%     if(i < 50){
+%       vecMu(0, 0) += matX(0, i);
+%       vecMu(1, 0) += matX(1, i);
+%     }else{
+%       vecMu(0, 1) += matX(0, i);
+%       vecMu(1, 1) += matX(1, i);
+%     }
+%     std::cout << i << "," << vecMu << std::endl;
+%   }
+%   // vecMu /= 50;
+
+%   MatrixXd matSw(2, 2);
+%   // std::cout << matSw << std::endl;
+%   for(int i=0; i < 100; i++){
+%     if(i < 50){
+%       matSw += (matX.col(i) - vecMu.col(0))*(matX.col(i) - vecMu.col(0)).transpose();
+%     }else{
+%       matSw += (matX.col(i) - vecMu.col(1))*(matX.col(i) - vecMu.col(1)).transpose();
+%     }
+%       // std::cout << i << "," << matSw << std::endl;
+%   }
+
+%   MatrixXd matSb(2, 2);
+%   matSb = 50*vecMu.col(0)*vecMu.col(0).transpose() + 50*vecMu.col(1)*vecMu.col(1).transpose();
+
+
+
+
+
+%   // MatrixXd matW(100, 100);
+%   // for(int i=0; i < 100; i++){
+%   //   for(int j=0; j < 100; j++){
+%   //     matW(i, j) = gk(matX.col(i), matX.col(j));
+%   //   }
+%   // }
+
+%   // MatrixXd matD(100, 100);
+%   // for(int i=0; i < 100; i++){
+%   //   matD(i, i) = matW.col(i).sum();
+%   // }
+
+%   // MatrixXd matL = matD - matW;
+
+%   GeneralizedEigenSolver<MatrixXd> ges;
+%   ges.compute(matSb, matSw, true);
+%   MatrixXd matTlpp(2, 2); //= ges.eigenvectors().alpha();
+%   for(int i=0; i < 2; i++){
+%     for(int j=0; j < 2; j++){
+%       matTlpp(i, j) = ges.eigenvectors()(i, j).real();
+%     }
+%   }
+%   MatrixXd bvec(2, 1);
+%   if(ges.eigenvalues()(0).real() > ges.eigenvalues()(1).real()){
+%     bvec = matTlpp.col(0);
+%   }else{
+%     bvec = matTlpp.col(1);
+%   }
+
+%   // MatrixXd matRed = matTlpp*matX;
+
+%   // // out
+%   // std::ofstream file("matTlpp");
+%   // file << matTlpp << std::endl;
+%   // std::ofstream filew("matW");
+%   // filew << matW << std::endl;
+%   // std::ofstream filed("matD");
+%   // filed << matD << std::endl;
+%   // std::ofstream filep("points");
+%   // filep << matX << std::endl;
+%   // std::ofstream fileeig("eig");
+%   // fileeig << ges.eigenvalues() << std::endl << ges.eigenvectors() << std::endl;
+%   // std::ofstream filered("matRed");
+%   // filered << matRed << std::endl;
+%   // std::ofstream filewvec("matX");
+%   // filewvec << matX << std::endl;
+%   // std::ofstream filebvec("bestVec");
+%   // filebvec << bvec << std::endl;
+%   save_mat(std::string("matSb"), &matSb);
+%   save_mat(std::string("matSw"), &matSw);
+%   save_mat(std::string("vecMu"), &vecMu);
+%   save_mat(std::string("matTlpp"), &matTlpp);
+%   save_mat(std::string("matX"), &matX);
+%   save_mat(std::string("bVec"), &bvec);
+% }
+% \end{verbatim}
+% \normalsize
+% \subsection*{表示プログラム}
+% \tiny
+% \begin{verbatim}
+% import numpy as np
+% import matplotlib.pyplot as plt
+
+% wvec = np.loadtxt("bVec")
+
+% matx = np.loadtxt("matX")
+
+% plt.axis([-5, 5, -5, 5])
+% lsp = np.linspace(-20, 20, 100)
+% plt.plot(matx[0, :50], matx[1, :50], 'rx')    
+% plt.plot(matx[0, 50:], matx[1, 50:], 'bx')    
+% plt.plot(lsp, lsp*(wvec[1]/wvec[0]), 'k-')  
+% plt.show()
+% \end{verbatim}
+
+% \normalsize
+
+
+\end{document}

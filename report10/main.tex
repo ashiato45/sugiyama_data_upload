@@ -1,0 +1,226 @@
+\documentclass[9pt]{ltjsarticle}
+\DeclareSymbolFont{bbold}{U}{bbold}{m}{n}
+\DeclareSymbolFontAlphabet{\mathbbold}{bbold}
+\newcommand{\bbold}{\mathbbold}
+\usepackage{xcolor}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{enumitem}
+\usepackage{ashiato45}
+%\usepackage{okumacro}
+\def\MARU#1{\textcircled{\scriptsize #1}}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{framed}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{here}
+%\usepackage[twoside]{geometry}
+\usepackage{mytheorems}
+\usepackage{tikz}
+% usepackage{ascmac}
+% \usepackage{stmaryrd}
+% \usepackage{txfonts}
+% \usetikzlibrary{cd}
+\title{先端データ解析論(杉山将先生・本多淳也先生)\\第10回レポート}
+\author{ashiato45}
+\date{2017年6月20日}
+
+\renewcommand{\bf}{\mathbf}
+\newcommand{\nemui}{Y=眠}
+\newcommand{\nemukunai}{Y=非眠}
+\newcommand{\suki}{X=好}
+\newcommand{\kirai}{X=嫌}
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+\newcommand{\argmax}{\mathop{\mathrm{argmax}}}
+\newcommand{\test}{\mathrm{test}}
+\newcommand{\train}{\mathrm{train}}
+\newcommand{\kitai}{\bbold{E}}
+\newcommand{\tr}{\mathrm{tr}}
+
+\begin{document}
+\maketitle
+
+\section*{宿題1}
+\begin{align}
+\sum_{i,i'} W_{i,i'}\norm{Tx_i-T{x_{i'}}}^2
+&=
+\sum_{i,i'} W_{i,i'}(Tx_i-T{x_{i'}})^\top (Tx_i-T{x_{i'}})\\
+&=
+\sum_{i,i'} W_{i,i'}(x_i^\top T^\top T x_i - x_i^\top T^\top T x_{i'} - x_{i'}^\top T^\top T x_i + x_{i'}^\top T^\top T x_{i'})\\
+&=
+2\left({\sum_{i,i'}W_{i,i'}x_i^\top T^\top T x_i} 
+- {\sum_{i,i'}W_{i,i'}x_i^\top T^\top T x_{i'}}\right)\\
+&=
+2\left(\underbrace{\sum_{i,i',a,b,c}W_{i,i'} X_{ai}T_{ba}T_{bc}X_{ci}}_{\alpha \defeq} 
+- \underbrace{\sum_{i,i'a,b,c}W_{i,i'}X_{ai}T_{ba}T_{bc}X_{ci'}}_{\beta \defeq}\right)\\
+\end{align}
+
+\begin{align}
+(TXDX^\top T^\top)_{ij}
+&=
+\sum_{a,b,c,d}T_{ia}X_{ab}D_{bc}(X^\top)_{cd}(T^\top)_{dj}\\
+&=
+\sum_{a,b,c,d}T_{ia}X_{ab}D_{bc}X_{dc}T_{jd}\\
+&=
+\sum_{a,b,d}T_{ia}X_{ab}(\sum_{i'}W_{b,i'})X_{db}T_{jd}.
+\end{align}
+よって、
+\begin{align}
+\tr(TXDX^\top T^\top)
+&=
+\sum_{i,i'a,b,d}T_{ia}X_{ab}W_{b,i'}X_{db}T_{id}\\
+&= \alpha.
+\end{align}
+
+\begin{align}
+(TXWX^\top T^\top)_{ij}
+&=
+\sum_{a,b,c,d}T_{ia}X_{ab}W_{bc}(X^\top)_{cd}(T^\top)_{dj}\\
+&=
+\sum_{a,b,c,d}T_{ia}X_{ab}W_{bc}X_{dc}T_{jd}.
+\end{align}
+よって、
+\begin{align}
+\tr(TXWX^\top T^\top)
+&=
+\sum_{a,b,c,d,i}T_{ia}X_{ab}W_{bc}X_{dc}T_{id}\\
+&=
+\beta.
+\end{align}
+
+よって、
+\begin{align}
+\sum_{i,i'} W_{i,i'}\norm{Tx_i-T{x_{i'}}}^2
+&=
+2\left(\tr(TXDX^\top T^\top) - \tr(TXWX^\top T^\top)\right)\\
+&=
+2\left(\tr(TX(D-W)X^\top T^\top)\right)\\
+&=
+2\left(\tr(TXLX^\top T^\top)\right).
+\end{align}
+
+
+\section*{宿題2}
+C++とEigenによる実装(表示にはPythonを用いた)は付録1にある。結果、図1と図2を得た。
+  \easypicture{figure_1.pdf}
+  \easypicture{figure_2.pdf}
+
+\section*{付録1}
+\subsection*{学習プログラム}
+\tiny
+\begin{verbatim}
+#include <iostream>
+#include <Eigen/Dense>
+#include <Eigen/Eigenvalues>
+#include <cmath>
+#include <random>
+#include <string>
+#include <fstream>
+#define M_PI 3.1416
+
+#define print(var)  \
+  std::cout<<#var"= "<<std::endl<<(var)<<std::endl
+
+using Eigen::MatrixXd;
+using Eigen::MatrixXf;
+using Eigen::GeneralizedEigenSolver;
+
+void save_mat(std::string& name, const MatrixXd* mat){
+  std::ofstream file(name);
+  file << *mat << std::endl;
+}
+
+float gk(const MatrixXd& x, const MatrixXd& c){
+  float hh = std::pow(2*1, 2); 
+  auto d = (x - c).norm();
+  return std::exp(-d*d/hh);
+}
+
+
+int main()
+{
+  std::mt19937 engine;
+  std::normal_distribution<> dist(0, 1);
+  std::uniform_real_distribution<> unif(0, 1);
+
+  // MatrixXd matX(2, 100);
+  // for(int i=0; i < 100; i++){
+  //   matX(0, i) = 2*dist(engine);
+  //   matX(1, i) = dist(engine);
+  // }
+  MatrixXd matX(2, 100);
+  for(int i=0; i < 100; i++){
+    matX(0, i) = dist(engine);
+    matX(1, i) = 2*std::round(unif(engine)) - 1 + dist(engine)/3;
+  }
+
+  MatrixXd matW(100, 100);
+  for(int i=0; i < 100; i++){
+    for(int j=0; j < 100; j++){
+      matW(i, j) = gk(matX.col(i), matX.col(j));
+    }
+  }
+
+  MatrixXd matD(100, 100);
+  for(int i=0; i < 100; i++){
+    matD(i, i) = matW.col(i).sum();
+  }
+
+  MatrixXd matL = matD - matW;
+
+  GeneralizedEigenSolver<MatrixXd> ges;
+  ges.compute(matX*matL*matX.transpose(), matX*matD*matX.transpose(), true);
+  MatrixXd matTlpp(2, 2); //= ges.eigenvectors().alpha();
+  for(int i=0; i < 2; i++){
+    for(int j=0; j < 2; j++){
+      matTlpp(i, j) = ges.eigenvectors()(i, j).real();
+    }
+  }
+  MatrixXd wvec(2, 1);
+  if(ges.eigenvalues()(0).real() < ges.eigenvalues()(1).real()){
+    wvec = matTlpp.col(0);
+  }else{
+    wvec = matTlpp.col(1);
+  }
+
+  MatrixXd matRed = matTlpp*matX;
+
+  // out
+  std::ofstream file("matTlpp");
+  file << matTlpp << std::endl;
+  std::ofstream filew("matW");
+  filew << matW << std::endl;
+  std::ofstream filed("matD");
+  filed << matD << std::endl;
+  std::ofstream filep("points");
+  filep << matX << std::endl;
+  std::ofstream fileeig("eig");
+  fileeig << ges.eigenvalues() << std::endl << ges.eigenvectors() << std::endl;
+  std::ofstream filered("matRed");
+  filered << matRed << std::endl;
+  std::ofstream filewvec("worstVec");
+  filewvec << wvec << std::endl;
+}
+\end{verbatim}
+\normalsize
+\subsection*{表示プログラム}
+\tiny
+\begin{verbatim}
+import numpy as np
+import matplotlib.pyplot as plt
+
+wvec = np.loadtxt("worstVec")
+
+matx = np.loadtxt("points")
+
+plt.axis([-5, 5, -5, 5])
+lsp = np.linspace(-20, 20, 100)
+plt.plot(matx[0, :], matx[1, :], 'rx')     
+plt.plot(lsp, lsp*(wvec[1]/wvec[0]), '-')  
+plt.show()
+\end{verbatim}
+
+\normalsize
+
+
+\end{document}

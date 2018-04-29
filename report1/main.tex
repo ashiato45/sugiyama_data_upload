@@ -1,0 +1,82 @@
+\documentclass[9pt]{ltjsarticle}
+\DeclareSymbolFont{bbold}{U}{bbold}{m}{n}
+\DeclareSymbolFontAlphabet{\mathbbold}{bbold}
+\newcommand{\bbold}{\mathbbold}
+\usepackage{xcolor}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{enumitem}
+\usepackage{ashiato45}
+%\usepackage{okumacro}
+\def\MARU#1{\textcircled{\scriptsize #1}}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{framed}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{here}
+%\usepackage[twoside]{geometry}
+\usepackage{mytheorems}
+\usepackage{tikz}
+\usepackage{ascmac}
+\usepackage{stmaryrd}
+\usetikzlibrary{cd}
+\title{先端データ解析論(杉山将先生・本多淳也先生)}
+\author{ashiato45}
+\date{2017年4月16日}
+
+\renewcommand{\bf}{\mathbf}
+\newcommand{\nemui}{Y=眠}
+\newcommand{\nemukunai}{Y=非眠}
+\newcommand{\suki}{X=好}
+\newcommand{\kirai}{X=嫌}
+
+\begin{document}
+\maketitle
+
+\section*{宿題1}
+\begin{enumerate}[label=(\Alph*)]
+ \item $p(\suki, \nemui)=p(\nemui | \suki)p(\suki)=0.25\cdot 0.8 = 0.2 .$
+ \item 
+\begin{align}
+ p(\nemui)
+&=
+p(\suki, \nemui) + p(\kirai, \nemui)\\
+ & =
+p(\nemui | \suki)p(\suki) + p(\nemui | \kirai)p(\kirai)\\
+ & =
+0.25\cdot 0.8 + 0.25\cdot 0.2\\
+ & =
+0.25.
+\end{align}
+ \item 
+$p(\suki | \nemui) = p(\suki, \nemui)/p(\nemui) = 0.2/0.25 = 0.8.$
+ \item 
+(A)によれば、$p(\suki, \nemui)=0.2$である。一方、(B)によれば、
+$p(\suki)p(\nemui)=0.8\cdot 0.25 = 0.2$である。よって、
+$p(\suki, \nemui)=p(\suki)p(\nemui)$であり、統計の好き嫌いと授業中眠たい
+       ことは独立である。
+\end{enumerate}
+
+\section*{宿題2}
+測度と確率変数とをうまくとれば連続型は離散型を含むので、連続型のときのみ示す。積分
+の線形性から従う。
+\begin{enumerate}[label=(\Alph*)]
+ \item $E(c)=\int cdx = c\int dx = c\cdot 1 = c.$
+ \item $E(X+X')=\int(X+X')dx = \int Xdx + \int X'dx = E(X)+E(X').$
+ \item $E(cX)=\int(cX)dx = c\int Xdx = cE(X).$ 
+\end{enumerate}
+
+\section*{宿題3}
+\begin{enumerate}[label=(\Alph*)]
+ \item $V(c)=E[(c-E[c])^2]=E[0]=0.$
+ \item $V[X+c]=E[(X+c)^2]-E[X+c]^2=(E[X^2]+2cE[X]+c^2)-(E[X]^2+2cE[X]+c^2)=E[X^2]-E[X]^2=V[X].$
+ \item $V[cX]=E[(cX)^2]-E[cX]^2=c^2(E[X^2]-E[X]^2)=c^2V[X].$
+ \item 
+\begin{align}
+ V(X+X')
+ &= E[(X+X')^2]-E[X+X']^2\\
+ & = (E[X^2]-E[X]^2) + (E[{X'}^2]-E[X']^2) + 2(E[XX']-E[X]E[X'])\\
+ & = V[X] + V[X'] + 2\mathrm{Cov}(X,X').
+\end{align}
+\end{enumerate}
+\end{document}

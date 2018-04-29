@@ -1,0 +1,130 @@
+\documentclass[9pt]{ltjsarticle}
+\DeclareSymbolFont{bbold}{U}{bbold}{m}{n}
+\DeclareSymbolFontAlphabet{\mathbbold}{bbold}
+\newcommand{\bbold}{\mathbbold}
+\usepackage{xcolor}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{enumitem}
+\usepackage{ashiato45}
+%\usepackage{okumacro}
+\def\MARU#1{\textcircled{\scriptsize #1}}
+\usepackage{graphicx}
+\usepackage{ulem}
+\usepackage{framed}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{here}
+%\usepackage[twoside]{geometry}
+\usepackage{mytheorems}
+\usepackage{tikz}
+\usepackage{ascmac}
+\usepackage{stmaryrd}
+\usepackage{txfonts}
+\usetikzlibrary{cd}
+\title{先端データ解析論(杉山将先生・本多淳也先生)\\第4回レポート}
+\author{ashiato45}
+\date{2017年5月9日}
+
+\renewcommand{\bf}{\mathbf}
+\newcommand{\nemui}{Y=眠}
+\newcommand{\nemukunai}{Y=非眠}
+\newcommand{\suki}{X=好}
+\newcommand{\kirai}{X=嫌}
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+\newcommand{\argmax}{\mathop{\mathrm{argmax}}}
+
+\begin{document}
+\maketitle
+
+\section*{宿題1}
+\begin{align}
+ e(\theta) = \frac{1}{2}\sum_{i=1}^n \tilde w_i 
+\left(\sum_{j=1}^b \theta_j \phi_j(x_i) - y_i\right)^2
+\end{align}
+とおく。$e$は下に凸な二次関数なので、微分が0の点を求めれば最小点を求めることができ
+る。
+
+$J=1,\dots,b$として、
+\begin{align}
+ \frac{\pd}{\pd \theta_J}e(\theta) = 
+\sum_{i=1}^n \tilde w_i \left(\sum_{j=1}^b \theta_j\phi_j(x_i)-y_i\right)\phi_J(x_i)
+\end{align}
+となるので、これが0になるときを考えると、次の式を得る:
+\begin{align}
+ \sum_{i=1}^n \tilde w_i y_i \phi_J(x_i) = \sum_{i=1}^n \tilde w_i \sum_{j=1}^b \theta_j \phi_j(x_i)\phi_J(x_i).
+\end{align}
+これが各$J$について成立するので、
+\begin{align}
+ \Phi^\top \tilde W y = \Phi^\top \tilde W \Phi \theta.
+\end{align}
+よって、$e$を最小化する$\theta$である$\hat \theta$は、
+\begin{align}
+ \hat \theta = (\Phi^\top \tilde W \Phi \theta)\inv \Phi^\top \tilde W y.
+\end{align}
+
+
+\section*{宿題2}
+対称性より、未知数$a,b$を用いて$\tilde \rho(r)=ar^2+b$とおいてよい。
+$\tilde(r)$は$(\tilde r, \rho(\tilde r))$で$\rho(r)$に接するので、
+$\tilde \rho'(\tilde r)=\rho'(\tilde r)$と$\tilde \rho(\tilde
+r)=\rho(\tilde r)$とを満たす。これは、
+$2a\tilde r = \rho'(\tilde r)$と$a\tilde r^2+b=\rho(\tilde r)$を得るので、
+これを解いて
+\begin{align}
+ \tilde \rho(r) = \frac{\rho'(\tilde r)}{2\tilde r}r^2 + b
+\end{align}
+となる。
+
+\section*{宿題3}
+Python実装は付録にある。$\eta = 1$とした。
+結果、図1を得た。
+\easypicture{figure_1.png}
+
+
+
+
+\section*{付録}
+\tiny
+\begin{verbatim}
+import sys
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)
+
+datanum = 10
+datasamples = np.linspace(-3, 3, datanum)
+datasamples = datasamples.reshape(len(datasamples), 1)
+y = datasamples + 0.2*np.random.randn(datanum, 1)
+y[datanum - 1] = -4
+y[datanum - 2] = -4
+y[3] = -4
+
+eta = 1
+theta = np.zeros((2, 1))
+phi = np.ones((datanum, 2))
+phi[:, 1] = datasamples.reshape(len(datasamples))
+for i in range(10000):
+    r = np.abs(np.dot(phi, theta) - y)
+    w = np.zeros((datanum, 1))
+    w[r <= eta] = ((1-r**2/eta**2)**2)[r <= eta]
+    W = np.diag(w.reshape(len(w)))
+    A = np.dot(np.dot(phi.transpose(), W), phi)
+    b = np.dot(np.dot(phi.transpose(), W), y)
+    theta2 = np.linalg.solve(A, b)
+    if np.linalg.norm(theta2 - theta) < 0.001:
+        break
+    theta = theta2
+
+graphnum = 5000
+graphsamples = np.linspace(-3, 3, graphnum)
+graphsamples = graphsamples.reshape(graphnum, 1)
+graph = theta[0, 0] + theta[1, 0]*graphsamples
+
+plt.axis([-3.2, 3.2, -4.2, 4.2])    
+plt.plot(datasamples, y, 'o')
+plt.plot(graphsamples, graph, '-')
+plt.show()
+\end{verbatim}
+
+\end{document}
